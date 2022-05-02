@@ -1,0 +1,65 @@
+<pre>
+<script>
+    // 接下来来编写一个简单的词法解析器来完成词法的收集
+    // 使用正则语法来实现词法解析
+    // Whitespace : 用来判断 空白符
+    // Lineterminator : 行终止符在JavaScript中换行为终结符，
+    // Comments 为 注释不会被编译。
+    // Token 用来，词法单元
+    // Literal : 直接量
+    // Keywords : 关键字
+    // Punctuator 用来判断符号，
+    // StringLiteral : 单双引号或 ` ，包裹，但是不能为 换行符(\n)的 的字符串,但是 ` 内 可为任意字符。
+    // NumberLiteral : 用来判断数字。
+    // NullLiteral ： 用来判断 null。
+    // BooleanLiteral ： 用来判断 boolean 类型
+    let xregexps = {
+        InputElements : "<Whitespace>|<LineTerminator>|<Comments>|<Token>",
+        Whitespace:/ /, // 用来判断空白字符
+        Comments : /\/*([^*]|\*[^\/])*\/|\/\/[^\n]*/,
+        LineTerminator : /\n/, // 用来判断换行，当前行结束
+        Token : "<Literal>|<Keywords>|<Identifier>|<Punctuator>",
+        Literal : "<NumberLiteral>|<StringLiteral>|<NullLiteral>|<BooleanLiteral>",
+        NumberLiteral : /([1-9][0-9]*|0)(\.[0-9])?|\.[0-9]+/,
+        BooleanLiteral : /true|false/,
+        StringLiteral : /\"([^"\n]\\[\s\S])*\"|\'([^'\n]\\[\s\S])*\'|\`([\s\S])\`/,
+        NullLiteral : /null/,
+        Identifier : /[a-zA-Z_$][a-zA-Z0-9_$]*/,
+        Keywords : /if|else|for|while|function|class|var|let|const|break|new|return|continue/,
+        Punctuator : /\(|\)|\?|\.|\=\=|\=|\>|\<|\=|\>\=|\<\=|\:|\*|\[|\]|\+\+|\-\-|\;|\{|\}|\,|\+|\-|\=\>/
+    }
+    // 接下来解析正则
+    function compileRegExp (xregexp,name) {
+        // 如果是一个正则 则返回 当前 name 下的源码
+        if(xregexp[name] instanceof RegExp)
+            return xregexp[name].source;
+        // 将 为 <> 内的 内容替换为 正则表达式。
+        let regexp = xregexp[name].replace(/\<([^\>]+)\>/g,function (str,$1) {
+            return compileRegExp(xregexp,$1);
+        })
+        return regexp;
+    }
+    function scan (str) {
+        let regexps = new RegExp(compileRegExp(xregexps,"InputElements"),'g')
+        let regexp = new RegExp(regexps,'g');
+        // regexp.lastIndex,regexp当匹配成功，则lastIndex会被设置到最近匹配成功的下一个位置。
+        while(regexp.lastIndex < str.length) {
+            let r = regexp.exec(str);
+            document.write(r[0]);
+            if(!r[0].length) break;
+        }
+    }
+    scan(`
+    for(let i = 0; i < 3; i++) {
+        for(let j = 0; j < 3; j++) {
+            let cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.innerText = pattern[i * 3 + j] == 2 ? "❌" : pattern[i* 3 + j] == 1 ? "⭕" : "";
+            cell.addEventListener("click", () => userMove(j,i));
+            board.appendChild(cell);
+        }
+        board.appendChild(document.createElement("br"));
+    }
+    `)
+</script>
+</pre>
